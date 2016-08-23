@@ -1,14 +1,14 @@
 package example.com.movies;
 
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.format.Time;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.ArrayAdapter;
+import android.widget.GridView;
+
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -20,30 +20,33 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private String API_KEY = "8acc697ba44e770f378dfda2c109c170";
-    public ArrayAdapter<Movie> adapter = null;
+    public GridAdapter adapter = null;
     private HttpURLConnection urlConnection = null;
     private BufferedReader reader = null;
     private String jsonStr = "";
+    private ArrayList<Movie> mMovies;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        GetPopularMoviesTask moviesTask = new GetPopularMoviesTask();
-        moviesTask.execute();
+        getMovies();
+
+        GridView gridView = (GridView)findViewById(R.id.main_grid_view);
+        adapter = new GridAdapter(this);
+        gridView.setAdapter(adapter);
     }
 
     public void getMovies(){
-
+        GetPopularMoviesTask moviesTask = new GetPopularMoviesTask();
+        moviesTask.execute();
     }
 
     public class GetPopularMoviesTask extends AsyncTask<String, Void, List<Movie>> {
@@ -85,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
                     return null;
                 }
                 jsonStr = buffer.toString();
-
             } catch(Exception ex){
                 Log.e("Fragment", "Error", ex);
             } finally {
@@ -112,10 +114,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(List<Movie> result) {
             if(result != null){
-                //adapter.clear();
-                //for(String dayForecastStr : result){
-                    //adapter.add(dayForecastStr);
-                //}
+                adapter.setMovies(mMovies);
+                adapter.notifyDataSetChanged();
             }
         }
 
@@ -169,8 +169,8 @@ public class MainActivity extends AppCompatActivity {
 
                 movies.add(mov);
             }
-
-           return movies;
+            mMovies = movies;
+            return movies;
 
         }
     }
